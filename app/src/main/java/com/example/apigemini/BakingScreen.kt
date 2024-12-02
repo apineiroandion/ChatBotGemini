@@ -94,6 +94,32 @@ fun BakingScreen(
             }
         }
 
+
+
+        if (uiState is UiState.Loading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+        } else {
+            var textColor = MaterialTheme.colorScheme.onSurface
+            if (uiState is UiState.Error) {
+                textColor = MaterialTheme.colorScheme.error
+                result = (uiState as UiState.Error).errorMessage
+            } else if (uiState is UiState.Success) {
+                textColor = MaterialTheme.colorScheme.onSurface
+                result = (uiState as UiState.Success).outputText
+            }
+            val scrollState = rememberScrollState()
+            Text(
+                text = result,
+                textAlign = TextAlign.Start,
+                color = textColor,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(16.dp)
+                    .weight(1f)
+                    .verticalScroll(scrollState)
+            )
+        }
+
         Row(
             modifier = Modifier.padding(all = 16.dp)
         ) {
@@ -121,30 +147,6 @@ fun BakingScreen(
             ) {
                 Text(text = stringResource(R.string.action_go))
             }
-        }
-
-        if (uiState is UiState.Loading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-        } else {
-            var textColor = MaterialTheme.colorScheme.onSurface
-            if (uiState is UiState.Error) {
-                textColor = MaterialTheme.colorScheme.error
-                result = (uiState as UiState.Error).errorMessage
-            } else if (uiState is UiState.Success) {
-                textColor = MaterialTheme.colorScheme.onSurface
-                result = (uiState as UiState.Success).outputText
-            }
-            val scrollState = rememberScrollState()
-            Text(
-                text = result,
-                textAlign = TextAlign.Start,
-                color = textColor,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(16.dp)
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-            )
         }
     }
 }

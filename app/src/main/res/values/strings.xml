@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">ApiGemini</string>
-    <string name="action_go">Go</string>
-    <string name="baking_title">Baking with Gemini</string>
-    <string name="label_prompt">Prompt</string>
-    <string name="prompt_placeholder">Provide a recipe for the baked goods in the image</string>
+    <string name="action_go">Enviar</string>
+    <string name="baking_title">Chat</string>
+    <string name="label_prompt">Mensaje</string>
+    <string name="prompt_placeholder">Hola</string>
     <string name="image1_description">Cupcake</string>
     <string name="image2_description">Cookies</string>
     <string name="image3_description">Cake</string>

@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -145,7 +146,10 @@ fun BakingScreen(
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
             ) {
-                Text(text = stringResource(R.string.action_go))
+                Icon(
+                    painter = painterResource(id = R.drawable.enviar),
+                    contentDescription = stringResource(id = R.string.image2_description)
+                )
             }
         }
     }

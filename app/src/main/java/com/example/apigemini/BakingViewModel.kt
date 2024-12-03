@@ -17,8 +17,11 @@ class BakingViewModel : ViewModel() {
     val uiState: StateFlow<UiState> =
         _uiState.asStateFlow()
 
+    private val _messages = MutableStateFlow<List<String>>(emptyList())
+    val messages: StateFlow<List<String>> = _messages.asStateFlow()
+
     private val generativeModel = GenerativeModel(
-        modelName = "gemini-pro-vision",
+        modelName = "gemini-1.5-flash",
         apiKey = BuildConfig.apiKey
     )
 
@@ -27,6 +30,8 @@ class BakingViewModel : ViewModel() {
         prompt: String
     ) {
         _uiState.value = UiState.Loading
+
+        _messages.value = _messages.value + "Tú: $prompt"
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -37,11 +42,17 @@ class BakingViewModel : ViewModel() {
                     }
                 )
                 response.text?.let { outputContent ->
+                    _messages.value = _messages.value + "Gemini: $outputContent"
                     _uiState.value = UiState.Success(outputContent)
                 }
             } catch (e: Exception) {
+                _messages.value = _messages.value + "Error: ${e.localizedMessage ?: "Algo salió mal"}"
                 _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
         }
+    }
+
+    fun addMessage(message: String) {
+        _messages.value = _messages.value + message
     }
 }

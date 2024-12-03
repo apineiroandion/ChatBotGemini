@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -31,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,16 +64,47 @@ val imageDescriptions = arrayOf(
     R.string.image3_description,
 )
 
+/**
+ * Pantalla principal de la aplicación.
+ */
 @Composable
 fun BakingScreen(
     bakingViewModel: BakingViewModel = viewModel()
 ) {
+    /**
+     * Estado de la imagen seleccionada.
+     */
     val selectedImage = remember { mutableIntStateOf(0) }
+
+    /**
+     * Estado del mensaje a enviar.
+     */
     val placeholderPrompt = stringResource(R.string.prompt_placeholder)
+
+    /**
+     * Estado del mensaje a enviar.
+     */
     var prompt by rememberSaveable { mutableStateOf(placeholderPrompt) }
-    val messages = remember { mutableStateListOf<String>() } // Lista de mensajes
+
+    /**
+     * Lista de mensajes.
+     */
+    val messages = remember { mutableStateListOf<String>() }
+
+    /**
+     * Estado de la UI.
+     */
     val uiState by bakingViewModel.uiState.collectAsState()
+
+    /**
+     * Contexto de la aplicación.
+     */
     val context = LocalContext.current
+
+    /**
+     * Pantalla de carga.
+     */
+    val listState = rememberLazyListState()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -105,7 +138,6 @@ fun BakingScreen(
             }
         }
 
-        // Caja de scroll con la lista de mensajes
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -114,6 +146,7 @@ fun BakingScreen(
                 .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(4.dp))
         ) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(8.dp)
             ) {
@@ -135,6 +168,13 @@ fun BakingScreen(
             }
         }
 
+
+        LaunchedEffect(messages.size) {
+            if (messages.isNotEmpty()) {
+                listState.animateScrollToItem(messages.size - 1)
+            }
+        }
+
         Row(
             modifier = Modifier.padding(all = 16.dp)
         ) {
@@ -151,13 +191,13 @@ fun BakingScreen(
             Button(
                 onClick = {
                     if (prompt.isNotEmpty()) {
-                        messages.add(prompt) // Agrega el mensaje a la lista
+                        messages.add(prompt)
                         val bitmap = BitmapFactory.decodeResource(
                             context.resources,
                             images[selectedImage.intValue]
                         )
                         bakingViewModel.sendPrompt(bitmap, prompt)
-                        prompt = "" // Limpia el campo de texto
+                        prompt = ""
                     }
                 },
                 enabled = prompt.isNotEmpty(),

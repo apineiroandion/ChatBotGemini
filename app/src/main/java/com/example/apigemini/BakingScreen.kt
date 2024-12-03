@@ -64,6 +64,7 @@ val imageDescriptions = arrayOf(
     R.string.image3_description,
 )
 
+
 /**
  * Pantalla principal de la aplicación.
  */
@@ -71,6 +72,7 @@ val imageDescriptions = arrayOf(
 fun BakingScreen(
     bakingViewModel: BakingViewModel = viewModel()
 ) {
+
     /**
      * Estado de la imagen seleccionada.
      */
@@ -89,7 +91,7 @@ fun BakingScreen(
     /**
      * Lista de mensajes.
      */
-    val messages = remember { mutableStateListOf<String>() }
+    val messages by bakingViewModel.messages.collectAsState()
 
     /**
      * Estado de la UI.
@@ -105,6 +107,8 @@ fun BakingScreen(
      * Pantalla de carga.
      */
     val listState = rememberLazyListState()
+
+    var isSending by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -166,12 +170,13 @@ fun BakingScreen(
                     }
                 }
             }
-        }
 
-
-        LaunchedEffect(messages.size) {
-            if (messages.isNotEmpty()) {
-                listState.animateScrollToItem(messages.size - 1)
+            LaunchedEffect(messages.size) {
+                // Aseguramos que el índice no sea negativo
+                val lastIndex = messages.size - 1
+                if (lastIndex >= 0) {
+                    listState.animateScrollToItem(lastIndex)
+                }
             }
         }
 
@@ -190,17 +195,18 @@ fun BakingScreen(
 
             Button(
                 onClick = {
-                    if (prompt.isNotEmpty()) {
-                        messages.add(prompt)
+                    if (prompt.isNotEmpty() && !isSending) {
+                        isSending = true
                         val bitmap = BitmapFactory.decodeResource(
                             context.resources,
                             images[selectedImage.intValue]
                         )
                         bakingViewModel.sendPrompt(bitmap, prompt)
                         prompt = ""
+                        isSending = false
                     }
                 },
-                enabled = prompt.isNotEmpty(),
+                enabled = prompt.isNotEmpty() && !isSending,
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
             ) {

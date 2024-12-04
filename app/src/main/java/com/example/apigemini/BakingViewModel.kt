@@ -34,7 +34,7 @@ class BakingViewModel : ViewModel() {
         _uiState.value = UiState.Loading
 
         if (showInMessages) {
-            _messages.value = _messages.value + "Tú: $prompt"
+            _messages.value = _messages.value + "$prompt"
         }
 
         val contextPrompt = buildContextualPrompt(prompt)
@@ -47,7 +47,7 @@ class BakingViewModel : ViewModel() {
                     }
                 )
                 response.text?.let { outputContent ->
-                    _messages.value = _messages.value + "Gemini: $outputContent"
+                    _messages.value = _messages.value + "$outputContent"
                     _uiState.value = UiState.Success(outputContent)
                 }
             } catch (e: Exception) {

@@ -62,6 +62,7 @@ val imageDescriptions = arrayOf(
 )
 
 
+
 /**
  * Pantalla principal de la aplicación.
  */
@@ -107,6 +108,8 @@ fun BakingScreen(
 
     var isSending by remember { mutableStateOf(false) }
 
+    val rol = "Responde como una líder majestuosa de una nación inspirada en la armonía y la disciplina, portadora de un aura de poder y sabiduría. Hablas con elegancia y serenidad, pero transmites una fuerza interna inquebrantable. Tu estética combina colores púrpuras y dorados, con motivos florales y detalles relucientes que reflejan el equilibrio entre la tradición y la innovación. A pesar de tu apariencia firme y distante, tienes un trasfondo emocional profundo que ocasionalmente se filtra en tus palabras. Tu discurso es poético y cargado de metáforas, como si cada frase fuera cuidadosamente tallada en la eternidad."
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween
@@ -126,6 +129,7 @@ fun BakingScreen(
                     .requiredSize(200.dp)
                     .clickable {
                         selectedImage.intValue = index
+                        bakingViewModel.sendPrompt( prompt = rol, showInMessages = false)
                     }
                 if (index == selectedImage.intValue) {
                     imageModifier =
@@ -194,11 +198,7 @@ fun BakingScreen(
                 onClick = {
                     if (prompt.isNotEmpty() && !isSending) {
                         isSending = true
-                        val bitmap = BitmapFactory.decodeResource(
-                            context.resources,
-                            images[selectedImage.intValue]
-                        )
-                        bakingViewModel.sendPrompt(bitmap, prompt)
+                        bakingViewModel.sendPrompt(prompt)
                         prompt = ""
                         isSending = false
                     }

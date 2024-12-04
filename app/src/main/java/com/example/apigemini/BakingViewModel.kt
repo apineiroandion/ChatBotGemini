@@ -26,7 +26,6 @@ class BakingViewModel : ViewModel() {
     )
 
     fun sendPrompt(
-        bitmap: Bitmap,
         prompt: String,
         showInMessages: Boolean = true
     ) {
@@ -40,7 +39,6 @@ class BakingViewModel : ViewModel() {
             try {
                 val response = generativeModel.generateContent(
                     content {
-                        image(bitmap)
                         text(prompt)
                     }
                 )

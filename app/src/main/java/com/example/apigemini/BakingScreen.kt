@@ -3,18 +3,28 @@ package com.example.apigemini
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -22,9 +32,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -39,12 +51,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 val images = arrayOf(
-    // Image generated using Gemini from the prompt "cupcake image"
-    R.drawable.baked_goods_1,
-    // Image generated using Gemini from the prompt "cookies images"
-    R.drawable.baked_goods_2,
-    // Image generated using Gemini from the prompt "cake images"
-    R.drawable.baked_goods_3,
+    R.drawable.waifu1,
+    R.drawable.waifu2,
+    R.drawable.husbando1,
 )
 val imageDescriptions = arrayOf(
     R.string.image1_description,
@@ -52,20 +61,58 @@ val imageDescriptions = arrayOf(
     R.string.image3_description,
 )
 
+
+
+/**
+ * Pantalla principal de la aplicación.
+ */
 @Composable
 fun BakingScreen(
     bakingViewModel: BakingViewModel = viewModel()
 ) {
+
+    /**
+     * Estado de la imagen seleccionada.
+     */
     val selectedImage = remember { mutableIntStateOf(0) }
+
+    /**
+     * Estado del mensaje a enviar.
+     */
     val placeholderPrompt = stringResource(R.string.prompt_placeholder)
-    val placeholderResult = stringResource(R.string.results_placeholder)
+
+    /**
+     * Estado del mensaje a enviar.
+     */
     var prompt by rememberSaveable { mutableStateOf(placeholderPrompt) }
-    var result by rememberSaveable { mutableStateOf(placeholderResult) }
+
+    /**
+     * Lista de mensajes.
+     */
+    val messages by bakingViewModel.messages.collectAsState()
+
+    /**
+     * Estado de la UI.
+     */
     val uiState by bakingViewModel.uiState.collectAsState()
+
+    /**
+     * Contexto de la aplicación.
+     */
     val context = LocalContext.current
 
+    /**
+     * Pantalla de carga.
+     */
+    val listState = rememberLazyListState()
+
+    var isSending by remember { mutableStateOf(false) }
+
+    val rol = "Responde como una líder majestuosa de una nación inspirada en la armonía y la disciplina, portadora de un aura de poder y sabiduría. Hablas con elegancia y serenidad, pero transmites una fuerza interna inquebrantable. Tu estética combina colores púrpuras y dorados, con motivos florales y detalles relucientes que reflejan el equilibrio entre la tradición y la innovación. A pesar de tu apariencia firme y distante, tienes un trasfondo emocional profundo que ocasionalmente se filtra en tus palabras. Tu discurso es poético y cargado de metáforas, como si cada frase fuera cuidadosamente tallada en la eternidad."
+
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = stringResource(R.string.baking_title),
@@ -82,6 +129,7 @@ fun BakingScreen(
                     .requiredSize(200.dp)
                     .clickable {
                         selectedImage.intValue = index
+                        bakingViewModel.sendPrompt( prompt = rol, showInMessages = false)
                     }
                 if (index == selectedImage.intValue) {
                     imageModifier =
@@ -95,30 +143,42 @@ fun BakingScreen(
             }
         }
 
-
-
-        if (uiState is UiState.Loading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-        } else {
-            var textColor = MaterialTheme.colorScheme.onSurface
-            if (uiState is UiState.Error) {
-                textColor = MaterialTheme.colorScheme.error
-                result = (uiState as UiState.Error).errorMessage
-            } else if (uiState is UiState.Success) {
-                textColor = MaterialTheme.colorScheme.onSurface
-                result = (uiState as UiState.Success).outputText
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(16.dp)
+                .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(4.dp))
+        ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(8.dp)
+            ) {
+                items(messages) { message ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
             }
-            val scrollState = rememberScrollState()
-            Text(
-                text = result,
-                textAlign = TextAlign.Start,
-                color = textColor,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(16.dp)
-                    .weight(1f)
-                    .verticalScroll(scrollState)
-            )
+
+            LaunchedEffect(messages.size) {
+                // Aseguramos que el índice no sea negativo
+                val lastIndex = messages.size - 1
+                if (lastIndex >= 0) {
+                    listState.animateScrollToItem(lastIndex)
+                }
+            }
         }
 
         Row(
@@ -136,13 +196,14 @@ fun BakingScreen(
 
             Button(
                 onClick = {
-                    val bitmap = BitmapFactory.decodeResource(
-                        context.resources,
-                        images[selectedImage.intValue]
-                    )
-                    bakingViewModel.sendPrompt(bitmap, prompt)
+                    if (prompt.isNotEmpty() && !isSending) {
+                        isSending = true
+                        bakingViewModel.sendPrompt(prompt)
+                        prompt = ""
+                        isSending = false
+                    }
                 },
-                enabled = prompt.isNotEmpty(),
+                enabled = prompt.isNotEmpty() && !isSending,
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
             ) {

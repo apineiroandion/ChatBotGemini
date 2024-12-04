@@ -25,6 +25,8 @@ class BakingViewModel : ViewModel() {
         apiKey = BuildConfig.apiKey
     )
 
+    private val messageLimit = 10
+
     fun sendPrompt(
         prompt: String,
         showInMessages: Boolean = true
@@ -35,11 +37,13 @@ class BakingViewModel : ViewModel() {
             _messages.value = _messages.value + "Tú: $prompt"
         }
 
+        val contextPrompt = buildContextualPrompt(prompt)
+
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = generativeModel.generateContent(
                     content {
-                        text(prompt)
+                        text(contextPrompt) // Enviar el contexto completo
                     }
                 )
                 response.text?.let { outputContent ->
@@ -51,6 +55,12 @@ class BakingViewModel : ViewModel() {
                 _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
         }
+    }
+
+    private fun buildContextualPrompt(newPrompt: String): String {
+        val header = "Eres una líder majestuosa de una nación inspirada en la armonía y la disciplina. Hablas con elegancia y serenidad, transmitiendo poder y sabiduría. Responde según este contexto.\n\n"
+        val recentMessages = _messages.value.takeLast(messageLimit).joinToString("\n")
+        return "$header$recentMessages\nTú: $newPrompt"
     }
 
     fun addMessage(message: String) {

@@ -27,11 +27,14 @@ class BakingViewModel : ViewModel() {
 
     fun sendPrompt(
         bitmap: Bitmap,
-        prompt: String
+        prompt: String,
+        showInMessages: Boolean = true
     ) {
         _uiState.value = UiState.Loading
 
-        _messages.value = _messages.value + "Tú: $prompt"
+        if (showInMessages) {
+            _messages.value = _messages.value + "Tú: $prompt"
+        }
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
